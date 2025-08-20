@@ -2,20 +2,45 @@ import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import PrayerCard from "../../components/PrayerCard/PrayedCard";
 import { useForm } from "react-hook-form";
 import { PrayerFormData } from "../../types/types";
-import useTimes from "../../hooks/useTimes";
 import PrayerTimer from "../../components/PrayerTimer/PrayerTimer";
-import { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import dayjs from "dayjs";
+import useTimes from "../../hooks/useTimes";
+import { useLocationStore } from "../../store/useLocationStore";
 
 const PrayerTimesPage = () => {
   const [currentDate, setCurrentDate] = useState(dayjs());
-  // const [city, setCity] = useState('tokyo');
-  const [city] = useState('tokyo');
-  // const [country, setCountry] = useState('JP');
-  const [country] = useState('JP');
+  const selectedCountry = useLocationStore((s) => s.selectedCountry);
+  const selectedCity = useLocationStore((s) => s.selectedCity);
 
-  const [dayName, setDayName] = useState('Today');
-  const { prayerTimes, hijriDate, loading } = useTimes(currentDate, { city, country });
+  // compute API params from selected location (updates when selection changes)
+  const apiParams = useMemo(() => {
+    if (selectedCity && selectedCity.latitude && selectedCity.longitude) {
+      return {
+        latitude: String(selectedCity.latitude),
+        longitude: String(selectedCity.longitude),
+      };
+    }
+    if (selectedCity && selectedCountry) {
+      return {
+        city: selectedCity.name,
+        country: selectedCountry.code,
+      };
+    }
+    if (selectedCity) {
+      return {
+        city: selectedCity.name,
+        country: (selectedCity.code as string) || "",
+      };
+    }
+    // fallback: default city/country if you want a default
+    return { city: "tokyo", country: "JP" };
+  }, [selectedCity, selectedCountry]);
+
+  // pass apiParams to useTimes so it re-fetches when selection changes
+  const { prayerTimes, hijriDate, loading, error } = useTimes(currentDate, apiParams);
+
+  const [dayName, setDayName] = useState("Today");
 
   const { register, handleSubmit, watch } = useForm<PrayerFormData>({
     defaultValues: {
@@ -51,19 +76,17 @@ const PrayerTimesPage = () => {
 
   useEffect(() => {
     const today = dayjs();
-    if (today.isSame(currentDate, 'd')) {
-      setDayName('Today');
+
+    if (currentDate.isSame(today, "day")) {
+      setDayName("Today");
+    } else if (currentDate.isSame(today.add(1, "day"), "day")) {
+      setDayName("Tomorrow");
+    } else if (currentDate.isSame(today.subtract(1, "day"), "day")) {
+      setDayName("Yesterday");
+    } else {
+      setDayName(currentDate.format("dddd"));
     }
-    else if (today.isSame(currentDate.add(1, 'day'), 'd')) {
-      setDayName('Yesterday');
-    }
-    else if (today.isSame(currentDate.subtract(1, 'day'), 'd')) {
-      setDayName('Tomorrow');
-    }
-    else {
-      setDayName(currentDate.format('dddd'));
-    }
-  }, [currentDate])
+  }, [currentDate]);
 
   return (
     <div className="flex flex-col bg-light rounded-lg">
@@ -75,7 +98,7 @@ const PrayerTimesPage = () => {
             <div className="text-lg font-semibold mb-2 text-center">
               <p className={"text-black-primary text-sm"}>{dayName}</p>
               <p className={"text-xs text-black-secondary capitalize"}>
-                {city}, {currentDate.format('DD MMM YYYY')}, {hijriDate}
+                {selectedCity?.name}, {currentDate.format('DD MMM YYYY')}, {hijriDate}
               </p>
             </div>
 

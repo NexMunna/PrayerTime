@@ -1,0 +1,185 @@
+{
+	"info": {
+		"_postman_id": "16407a38-f800-42d7-8162-b353a85f3f78",
+		"name": "PrayerTime",
+		"description": "API for getting Prayer Times",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "31457961"
+	},
+	"item": [
+		{
+			"name": "timingsByCity",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://api.aladhan.com/v1/timingsByCity/15-02-2025?city=tokyo&country=JP",
+					"protocol": "https",
+					"host": [
+						"api",
+						"aladhan",
+						"com"
+					],
+					"path": [
+						"v1",
+						"timingsByCity",
+						"15-02-2025"
+					],
+					"query": [
+						{
+							"key": "city",
+							"value": "tokyo"
+						},
+						{
+							"key": "country",
+							"value": "JP"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "timingsByLocation",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "https://api.aladhan.com/v1/timings/15-15-2025?latitude=35.6684103&longitude=139.5760605",
+					"protocol": "https",
+					"host": [
+						"api",
+						"aladhan",
+						"com"
+					],
+					"path": [
+						"v1",
+						"timings",
+						"15-15-2025"
+					],
+					"query": [
+						{
+							"key": "latitude",
+							"value": "35.6684103"
+						},
+						{
+							"key": "longitude",
+							"value": "139.5760605"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "timingsByAddress",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "https://api.aladhan.com/v1/timingsByAddress/15-15-2025?address=mirpur, kushtia, bd",
+					"protocol": "https",
+					"host": [
+						"api",
+						"aladhan",
+						"com"
+					],
+					"path": [
+						"v1",
+						"timingsByAddress",
+						"15-15-2025"
+					],
+					"query": [
+						{
+							"key": "address",
+							"value": "mirpur, kushtia, bd"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "nextPrayer",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://api.aladhan.com/v1/nextPrayer/15-15-2025?latitude=35.6684103&longitude=139.5760605",
+					"protocol": "https",
+					"host": [
+						"api",
+						"aladhan",
+						"com"
+					],
+					"path": [
+						"v1",
+						"nextPrayer",
+						"15-15-2025"
+					],
+					"query": [
+						{
+							"key": "latitude",
+							"value": "35.6684103"
+						},
+						{
+							"key": "longitude",
+							"value": "139.5760605"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "nextPrayerByAddress",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://api.aladhan.com/v1/nextPrayerByAddress/15-15-2025?address=mirpur, kushtia, bd",
+					"protocol": "https",
+					"host": [
+						"api",
+						"aladhan",
+						"com"
+					],
+					"path": [
+						"v1",
+						"nextPrayerByAddress",
+						"15-15-2025"
+					],
+					"query": [
+						{
+							"key": "address",
+							"value": "mirpur, kushtia, bd"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

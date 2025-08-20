@@ -1,12 +1,12 @@
 import * as React from "react";
-import logo from "./prayer_time.ico";
 
 interface ILoadingProps {}
 
 const Loading: React.FunctionComponent<ILoadingProps> = () => {
   return (
-    <div class="flex items-center justify-center h-screen">
-      <img src={logo} alt="" />
+    <div className="flex items-center justify-center h-screen">
+      {/* Use public asset path (public/payer_time.ico) instead of importing a non-existent file */}
+      <img src="/payer_time.ico" alt="loading" />
     </div>
   );
 };

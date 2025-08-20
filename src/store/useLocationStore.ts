@@ -7,6 +7,8 @@ import {
 } from "../types/types";
 import { Country, City, State, ICity } from "country-state-city";
 
+const LOCATION_TYPE_KEY = "selectedLocationType";
+
 export const useLocationStore = create<LocationState>((set, get) => ({
   locationType: "select",
   countries: [],
@@ -50,17 +52,13 @@ export const useLocationStore = create<LocationState>((set, get) => ({
     set({ isLoadingCities: true });
 
     try {
-      // First check for country in localStorage
       const storedCountryJson = localStorage.getItem("selectedCountry");
       let countryCode;
 
       if (storedCountryJson) {
         try {
-          // Use the country from localStorage if available
           const storedCountry = JSON.parse(storedCountryJson);
           countryCode = storedCountry.code;
-
-          // Ensure store state matches localStorage
           if (get().selectedCountry?.code !== storedCountry.code) {
             set({ selectedCountry: storedCountry });
             countryName = storedCountry.name;
@@ -70,29 +68,23 @@ export const useLocationStore = create<LocationState>((set, get) => ({
         }
       }
 
-      // Fallback to store state if localStorage didn't have valid data
       if (!countryCode) {
         countryCode = get().selectedCountry?.code;
       }
 
-      // If still no country code, throw error
       if (!countryCode) {
         throw new Error("No country code available");
       }
 
-      // Get cities for the selected country using the package
       const states = State.getStatesOfCountry(countryCode);
       let citiesList: ICity[] = [];
 
-      // Get cities from all states in the country
       for (const state of states) {
         const stateCities = City.getCitiesOfState(countryCode, state.isoCode);
         citiesList = [...citiesList, ...stateCities];
       }
 
-      // If no cities found through states, try direct country lookup
       if (citiesList.length === 0) {
-        // Some countries don't have state data, so try getting cities directly
         const fallbackCities = getFallbackCities(countryName, countryCode);
         set({
           cities: fallbackCities as unknown as AppCity[],
@@ -101,15 +93,15 @@ export const useLocationStore = create<LocationState>((set, get) => ({
         return;
       }
 
-      // Format the cities as expected by the application
-      const cities = citiesList.map(
-        (city) =>
-          ({
-            name: city.name,
-            country: countryName,
-            prototype: {}, // Add the required prototype property
-          } as AppCity)
-      );
+      // Map cities and preserve latitude/longitude if provided by the library
+      const cities = citiesList.map((city) => ({
+        name: city.name,
+        country: countryName,
+        code: city.countryCode ?? countryCode,
+        latitude: city.latitude ?? undefined,
+        longitude: city.longitude ?? undefined,
+        // keep other properties as needed by your app
+      })) as AppCity[];
 
       set({
         cities,
@@ -117,7 +109,6 @@ export const useLocationStore = create<LocationState>((set, get) => ({
       });
     } catch (error) {
       console.error("Error loading cities:", error);
-      // Use fallback
       const countryCode = get().selectedCountry?.code || "";
       const fallbackCities = getFallbackCities(countryName, countryCode);
 
@@ -132,11 +123,15 @@ export const useLocationStore = create<LocationState>((set, get) => ({
     set({ locationType: type });
 
     // set location type in local storage
-    localStorage.setItem(LOCATION_TYPE_KEY, type);
+    try {
+      localStorage.setItem(LOCATION_TYPE_KEY, type);
+    } catch (e) {
+      console.error("Unable to persist location type:", e);
+    }
   },
 
   getLocationType: () => {
-    const storedType = localStorage.getItem(LOCATION_TYPE_KEY);
+    const storedType = typeof window !== "undefined" ? localStorage.getItem(LOCATION_TYPE_KEY) : null;
     if (storedType) {
       set({ locationType: storedType as LocationType });
     }
@@ -145,15 +140,11 @@ export const useLocationStore = create<LocationState>((set, get) => ({
   setSelectedCountry: (country) => {
     set({ selectedCountry: country, selectedCity: null });
     get().fetchCities(country.name);
-
-    // set selected country in local storage
     localStorage.setItem("selectedCountry", JSON.stringify(country));
   },
 
   setSelectedCity: (city) => {
     set({ selectedCity: city });
-
-    // set selected city in local storage
     localStorage.setItem("selectedCity", JSON.stringify(city));
   },
 
@@ -188,6 +179,39 @@ export const useLocationStore = create<LocationState>((set, get) => ({
     set({ selectedCountry: null, selectedCity: null });
     localStorage.removeItem("selectedCountry");
     localStorage.removeItem("selectedCity");
+  },
+
+  // expose selectedCountry and selectedCity (already present) and keep them in sync
+  // Add helper to compute API params from selected values (not stored, computed on read)
+  getApiParams: () => {
+    const s = get();
+    const selectedCity = s.selectedCity;
+    const selectedCountry = s.selectedCountry;
+
+    if (selectedCity && selectedCity.latitude && selectedCity.longitude) {
+      // return as strings (URLSearchParams expects strings)
+      return {
+        latitude: String(selectedCity.latitude),
+        longitude: String(selectedCity.longitude),
+      };
+    }
+
+    if (selectedCity && selectedCountry) {
+      return {
+        city: selectedCity.name,
+        country: selectedCountry.code,
+      };
+    }
+
+    if (selectedCity) {
+      // fallback if selectedCountry not set
+      return {
+        city: selectedCity.name,
+        country: (selectedCity.code as string) || "",
+      };
+    }
+
+    return undefined;
   },
 }));
 

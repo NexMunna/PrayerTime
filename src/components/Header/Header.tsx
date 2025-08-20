@@ -2,7 +2,7 @@ import * as React from "react";
 import { FaRegCalendarAlt } from "react-icons/fa";
 import { SlOptionsVertical } from "react-icons/sl";
 import { BsCalendarEvent } from "react-icons/bs";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation } from "react-router-dom";
 import useHeaderStore from "../../store/useHeaderStore";
 import { LocationSettingsDrawer } from "../LocationSettingsDrawer/LocationSettingsDrawer";
 

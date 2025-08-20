@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import React, { useEffect, useState } from "preact/hooks";
 import { useLocationStore } from "../../store/useLocationStore";
 
 interface LocationSettingsDrawerProps {
@@ -78,6 +78,48 @@ export const LocationSettingsDrawer = ({
     setSelectedCity("");
     setSearchTerm("");
     localStorage.removeItem("selectedCity");
+  };
+
+  // Example: when user saves a city selection:
+  const handleSaveCity = (selectedCountry, selectedCity) => {
+    // pass city & country to useTimes through whatever state you use (store or props)
+    // e.g., setLocationParams({ city: selectedCity.name, country: selectedCountry.code });
+  };
+
+  // Replace or add the save handlers so they write to the store
+  const handleSaveSelection = () => {
+    if (selectedCountry) setSelectedCountry(selectedCountry);
+    if (selectedCity) {
+      // ensure city object contains latitude & longitude when available
+      setSelectedCity(selectedCity);
+    }
+    // close drawer (call existing close handler)
+    onClose?.();
+  };
+
+  // Example: when user chooses device location (use geolocation)
+  const handleUseDeviceLocation = () => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const cityLike = {
+          name: "Device location",
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        };
+        // store as selected city with lat/lon
+        setSelectedCity(cityLike);
+        onClose?.();
+      },
+      (err) => {
+        console.error("Geolocation error", err);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  // Example: when user enters an address
+  const handleSaveAddress = (address) => {
+    // pass address param to useTimes: setLocationParams({ address: address });
   };
 
   return (
@@ -298,9 +340,28 @@ export const LocationSettingsDrawer = ({
                 </div>
               </div>
             )}
+
+            {/* Save and Use Device Location buttons */}
+            <div className="flex justify-between mt-4">
+              <button
+                onClick={handleSaveSelection}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+              >
+                Save
+              </button>
+
+              <button
+                onClick={handleUseDeviceLocation}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg"
+              >
+                Use my location
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </>
   );
 };
+
+export default LocationSettingsDrawer;
